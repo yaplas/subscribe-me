@@ -41,9 +41,9 @@ const notifier = createNotifier({storage});
 const notifications = notifier.getNotifications(
     from([
         // given the subscription criteria this event should be ignored
-        {event: "value-change", payload: { previous: 60, current: 54 } },
+        {type: "value-change", payload: { previous: 60, current: 54 } },
         // this event should trigger a notification
-        {event: "value-change", payload: { previous: 54, current: 49 } },
+        {type: "value-change", payload: { previous: 54, current: 49 } },
     ])
 );
 
