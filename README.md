@@ -4,7 +4,7 @@
 [![NPM version](https://img.shields.io/npm/v/subscribe-me.svg?style=flat-square)](https://npmjs.org/package/subscribe-me)
 [![Build Status](https://img.shields.io/travis/yaplas/subscribe-me/master.svg?style=flat-square)](https://travis-ci.org/yaplas/subscribe-me) [![Coverage Status](https://img.shields.io/codecov/c/github/yaplas/subscribe-me/master.svg?style=flat-square)](https://codecov.io/gh/yaplas/subscribe-me/branch/master)
 
-Events subscriptions CRUD and dispatcher. In a event driven microservices architecture it could  helps to keep generic events but specific subscriptions.
+Events subscriptions CRUD and dispatcher. In an event driven microservices architecture it could help to keep generic events but specific subscriptions.
 
 ## Install
 
