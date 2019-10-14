@@ -4,7 +4,7 @@
 [![NPM version](https://img.shields.io/npm/v/subscribe-me.svg?style=flat-square)](https://npmjs.org/package/subscribe-me)
 [![Build Status](https://img.shields.io/travis/yaplas/subscribe-me/master.svg?style=flat-square)](https://travis-ci.org/yaplas/subscribe-me) [![Coverage Status](https://img.shields.io/codecov/c/github/yaplas/subscribe-me/master.svg?style=flat-square)](https://codecov.io/gh/yaplas/subscribe-me/branch/master)
 
-subscrition manager
+Subscriptions CRUD and dispatcher. In a event driven microservices architecture it could  helps to keep generic events but specific subscriptions.
 
 ## Install
 
@@ -19,9 +19,41 @@ Yarn:
 ## Usage
 
 ```js
-import myModule from "subscribe-me";
+import {createMemoryStorage, createSubscriber, createNotifier} from "subscribe-me";
+import { from } from "rxjs";
 
-myModule();
+// postgres storage comming soon
+const storage = createMemoryStorage();
+const subscriber = createSubscriber({storage});
+
+// on other storage except memory this method is async
+const id = subscriber.subscribe({
+    event: "value-change",
+    target: "my-api.com/my-endpoint",
+    // you can specify a criteria for the event payload
+    // it supports mongodb where clause style
+    criteria: { previous: { $gte: 50 }, current: { $lt: 50 } }
+});
+
+const notifier = createNotifier({storage});
+
+// getNotification method accept a rxjs stream of events and return a rxjs stream of notifications
+const notifications = notifier.getNotifications(
+    from([
+        // given the subscription criteria this event should be ignored
+        {event: "value-change", payload: { previous: 60, current: 54 } },
+        // this event should trigger a notification
+        {event: "value-change", payload: { previous: 54, current: 49 } },
+    ])
+);
+
+// this subscribe is the rxjs observable subscribe
+notifications.subscribe(
+    notification => console.log("notification to be fulfilled: ", nitification)
+);
+
+// you can unsubscribe from the event using the subscription id
+subscriber.unsubscribe(id);
 ```
 
 ## API
