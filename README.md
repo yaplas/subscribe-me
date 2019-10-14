@@ -48,7 +48,7 @@ const notifications = notifier.getNotifications(
 );
 
 // dispatch notification to console log
-// this subscribe is the rxjs Observable subscribe mejthod
+// this subscribe is the rxjs Observable subscribe method
 notifications.subscribe(console.log);
 
 // you can unsubscribe from the event using the subscription id
