@@ -61,8 +61,6 @@ subscriber.unsubscribe(id);
 
 ### Table of Contents
 
-Coming soon
-
 ## License
 
 MIT © [Agustin Lascialandare](https://github.com/yaplas)

@@ -1,13 +1,13 @@
-import { mandatoryProp, compose, applySpec } from "./composition";
+import * as C from "./composition";
 
 const validateMandatoryProp = name =>
-  mandatoryProp(
+  C.mandatoryProp(
     name,
     new Error(`invalid subscription: "${name}" field is missing`)
   );
 
 const subscribe = ({ storage }) =>
-  compose(
+  C.compose(
     subscription => storage.add(subscription),
     validateMandatoryProp("event"),
     validateMandatoryProp("target")
@@ -15,12 +15,12 @@ const subscribe = ({ storage }) =>
 
 const unsubscribe = ({ storage }) => id => storage.remove(id);
 
-const getSubscriber = applySpec({
+const getSubscriber = C.applySpec({
   subscribe,
   unsubscribe
 });
 
-export default compose(
+export default C.compose(
   getSubscriber,
-  mandatoryProp("storage", new Error("No storage provided"))
+  C.mandatoryProp("storage", new Error("No storage provided"))
 );
