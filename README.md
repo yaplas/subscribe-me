@@ -47,7 +47,7 @@ const notifications = notifier.getNotifications(
     ])
 );
 
-// console log notifications
+// dispatch notification to console log
 // this subscribe is the rxjs Observable subscribe mejthod
 notifications.subscribe(console.log);
 
