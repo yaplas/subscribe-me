@@ -22,7 +22,7 @@ Yarn:
 import {createMemoryStorage, createSubscriber, createNotifier} from "subscribe-me";
 import { from } from "rxjs";
 
-// postgres storage comming soon
+// postgres storage coming soon
 const storage = createMemoryStorage();
 const subscriber = createSubscriber({storage});
 
