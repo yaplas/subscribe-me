@@ -18,18 +18,12 @@ describe("createMemoryStorage", () => {
     const storage = await createPostgresStorage({ client: { query } });
     await storage.add({
       event: "test-event",
-      target: "test-target",
-      criteria: { value: { $gte: 20 } }
+      target: "test-target"
     });
     expect(query).toHaveBeenCalledWith(
       expect.objectContaining({
         text: expect.stringContaining("INSERT INTO"),
-        values: [
-          expect.any(String),
-          "test-event",
-          "test-target",
-          { value: { $gte: 20 } }
-        ]
+        values: [expect.any(String), "test-event", "test-target", null]
       })
     );
   });
