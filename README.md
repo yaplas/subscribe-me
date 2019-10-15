@@ -62,7 +62,7 @@ It is possible to provide your PostgreSQL db configuration or calling the functi
 ```js
 import { createPostgresStorage } from "subscribe-me";
 
-// you can use directly createPostgresStorage() with no argumwents
+// you can use directly createPostgresStorage() with no arguments
 // to get postgres config from environment variables
 const storage = createPostgresStorage({
     user: 'dbuser',
