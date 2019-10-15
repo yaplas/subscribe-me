@@ -8,7 +8,8 @@ import {
   not,
   flip,
   any,
-  applyTo
+  applyTo,
+  curry
 } from "ramda";
 
 export * from "ramda";
@@ -35,4 +36,8 @@ export const isObject = both(
     flip(any)([is(Array), is(Date), is(Function)]),
     applyTo
   )
+);
+
+export const thenTap = curry(
+  async (func, value) => [await func(value), value][1]
 );
