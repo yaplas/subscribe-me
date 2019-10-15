@@ -22,11 +22,11 @@ Yarn:
 import {createMemoryStorage, createSubscriber, createNotifier} from "subscribe-me";
 import { from } from "rxjs";
 
-// postgres storage coming soon
+// memory storage is for testing/experiments purpose
 const storage = createMemoryStorage();
 const subscriber = createSubscriber({storage});
 
-// on other storage except memory this method is async
+// you can subscribe to an event
 const id = subscriber.subscribe({
     event: "value-change",
     target: "my-api.com/my-endpoint",
