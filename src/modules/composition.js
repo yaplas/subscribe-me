@@ -9,7 +9,10 @@ import {
   flip,
   any,
   applyTo,
-  curry
+  curry,
+  over,
+  lensProp,
+  defaultTo
 } from "ramda";
 
 export * from "ramda";
@@ -28,6 +31,9 @@ export const mandatoryProp = (name, err) =>
     ),
     eventuallyThrow(err)
   );
+
+export const defaultProp = (name, value) =>
+  over(lensProp(name), defaultTo(value));
 
 export const isObject = both(
   is(Object),

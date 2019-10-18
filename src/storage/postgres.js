@@ -1,14 +1,16 @@
 import { Pool } from "pg";
+import Cursor from "pg-cursor";
 import uuid from "uuid/v4";
-import { from } from "rxjs";
-import { switchMap } from "rxjs/operators";
+import { BehaviorSubject, from, asapScheduler } from "rxjs";
+import { concatMap, takeWhile, map, tap, concatAll } from "rxjs/operators";
 import * as C from "../modules/composition";
 
-const getPool = options => (options ? new Pool(options) : new Pool());
+const getPool = options =>
+  new Pool(C.pick(["user", "host", "database", "password", "port"], options));
 
-const init = client =>
+const init = table => client =>
   client.query(
-    `CREATE TABLE IF NOT EXISTS event_subscriptions(
+    `CREATE TABLE IF NOT EXISTS ${table}(
       id varchar(36) NOT NULL,
       event varchar(256) NOT NULL,  
       target varchar(2048) NOT NULL,  
@@ -17,47 +19,80 @@ const init = client =>
     )`
   );
 
-const showClient = ({ client, ...options }) => ({
+const showClientPromise = ({ pool, table, ...options }) => ({
   // we use the pool as the client because we don't need transactions here,
   // we execute single queries
-  client: C.thenTap(init, client || getPool(options)),
+  clientPromise: C.thenTap(init(table), pool || getPool(options)),
   ...options
 });
 
-const add = ({ client }) => async ({ event, target, criteria = null }) =>
-  (await client).query({
-    text: `INSERT INTO event_subscriptions(id, event, target, criteria)
+const add = ({ clientPromise, table }) => async ({
+  event,
+  target,
+  criteria = null
+}) =>
+  (await clientPromise).query({
+    text: `INSERT INTO ${table}(id, event, target, criteria)
     VALUES($1, $2, $3, $4)`,
     values: [uuid(), event, target, criteria]
   });
 
-const remove = ({ client }) => async id =>
-  (await client).query({
-    text: `DELETE FROM event_subscriptions WHERE id = $1`,
+const remove = ({ clientPromise, table }) => async id =>
+  (await clientPromise).query({
+    text: `DELETE FROM ${table} WHERE id = $1`,
     values: [id]
   });
 
-// TODO: try using a cursor or memoizing
-const getQueryData = async (queryObj, client) =>
-  (await (await client).query(queryObj)).rows;
+const cursorReader = cursor => size =>
+  new Promise((resolve, reject) =>
+    cursor.read(size, (err, rows) => (err ? reject(err) : resolve(rows)))
+  );
 
-const getObservable = (client, queryObj) =>
-  from(getQueryData(queryObj, client)).pipe(switchMap(rows => from(rows)));
+const release = (cursor, connection) =>
+  cursor.close(() => {
+    connection.release();
+  });
 
-const query = ({ client }) =>
+const buildChunkGetter = ({ chunkSize, clientPromise }) =>
   C.compose(
-    ([fields, values]) =>
-      getObservable(client, {
-        text: `SELECT id, event, target, criteria
-        FROM event_subscriptions WHERE ${C.join(
-          " AND ",
-          C.addIndex(C.map)(
-            (field, index) => `${field} = $${index + 1}`,
-            fields
-          )
-        )}`,
-        values
-      }),
+    getterPromise => async () => (await getterPromise)(),
+    async ({ text, values }) => {
+      const connection = await (await clientPromise).connect();
+      const cursor = connection.query(new Cursor(text, values));
+      const read = cursorReader(cursor);
+      return async () => {
+        const rows = await read(chunkSize);
+        if (rows.length === 0) {
+          release(cursor, connection);
+        }
+        return rows;
+      };
+    }
+  );
+
+const getConcatenator = getNextChunk => ({
+  concatMap: (chunkMapper = C.identity) => {
+    const subject = new BehaviorSubject(0).pipe(
+      concatMap(() => from(getNextChunk())),
+      takeWhile(chunk => chunk.length > 0),
+      map(chunkMapper),
+      tap(() => asapScheduler.schedule(() => subject.next())),
+      concatAll()
+    );
+    return subject;
+  }
+});
+
+const buildQuery = table =>
+  C.compose(
+    ([fields, values]) => ({
+      text: `SELECT id, event, target, criteria
+        FROM ${table} WHERE ${C.join(
+        " AND ",
+        C.addIndex(C.map)((field, index) => `${field} = $${index + 1}`, fields)
+      )}`,
+      values
+    }),
     C.transpose,
     C.toPairs,
     // prevent getting the whole table
@@ -67,11 +102,23 @@ const query = ({ client }) =>
     )
   );
 
+const query = ({ clientPromise, table, chunkSize }) =>
+  C.compose(
+    getConcatenator,
+    buildChunkGetter({ chunkSize, clientPromise }),
+    buildQuery(table)
+  );
+
+const end = ({ clientPromise }) => async () => (await clientPromise).end();
+
 export default C.compose(
   C.applySpec({
     add,
     remove,
-    query
+    query,
+    end
   }),
-  showClient
+  C.defaultProp("table", "event_subscriptions"),
+  C.defaultProp("chunkSize", 1000),
+  showClientPromise
 );

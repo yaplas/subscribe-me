@@ -8,40 +8,47 @@ describe("subscriber", () => {
     id = subscriber.subscribe({
       event: "test-event",
       target: "test-target",
-      filter: { test: "test" }
+      criteria: { test: "test" }
     });
     const next = jest.fn();
-    storage.query().subscribe({
-      next,
-      complete: () => {
-        expect(next).toHaveBeenCalledTimes(1);
-        expect(next).toHaveBeenCalledWith(
-          expect.objectContaining({
-            id: expect.any(String),
-            event: "test-event",
-            filter: { test: "test" }
-          })
-        );
-        done();
-      }
-    });
+    storage
+      .query()
+      .concatMap()
+      .subscribe({
+        next,
+        complete: () => {
+          expect(next).toHaveBeenCalledTimes(1);
+          expect(next).toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: expect.any(String),
+              event: "test-event",
+              target: "test-target",
+              criteria: { test: "test" }
+            })
+          );
+          done();
+        }
+      });
   });
   test("I can unsubscribe me from the event", done => {
     subscriber.unsubscribe(id);
     const next = jest.fn();
-    storage.query().subscribe({
-      next,
-      complete: () => {
-        expect(next).not.toHaveBeenCalled();
-        done();
-      }
-    });
+    storage
+      .query()
+      .concatMap()
+      .subscribe({
+        next,
+        complete: () => {
+          expect(next).toHaveBeenCalledTimes(0);
+          done();
+        }
+      });
   });
   test("I should provide the event I want to subscribe to", () => {
     expect(() => {
       subscriber.subscribe({
         target: "test-target",
-        filter: { test: "test" }
+        criteria: { test: "test" }
       });
     }).toThrow();
   });
@@ -49,7 +56,7 @@ describe("subscriber", () => {
     expect(() => {
       subscriber.subscribe({
         event: "test-event",
-        filter: { test: "test" }
+        criteria: { test: "test" }
       });
     }).toThrow();
   });

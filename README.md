@@ -62,17 +62,34 @@ It is possible to provide your PostgreSQL db configuration or calling the functi
 ```js
 import { createPostgresStorage } from "subscribe-me";
 
-// you can use directly createPostgresStorage() with no arguments
-// to get postgres config from environment variables
 const storage = createPostgresStorage({
-    user: 'dbuser',
-    host: 'database.server.com',
-    database: 'mydb',
-    password: 'secretpassword',
+    user: "dbuser",
+    host: "database.server.com",
+    database: "mydb",
+    password: "secretpassword",
     port: 3211,
+    // besides the postgres settings you can optionally
+    // porvide the table name and the chunk size
+    // the following values are the defaults
+    table: "event_subscriptions",
+    chunkSize: 1000,
 })
 
 ```
+Also you can provide directly the connection pool, so for instance, you can allow postgres get its configuration from environment variables.
+
+```js
+import { createPostgresStorage } from "subscribe-me";
+import { Pool } from "pg";
+
+const storage = createPostgresStorage({
+    pool: new Pool(),
+    table: "event_subscriptions",
+    chunkSize: 1000,
+})
+
+```
+
 
 ## API
 

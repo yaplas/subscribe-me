@@ -6,46 +6,55 @@ describe("createMemoryStorage", () => {
   test("I can add an item", done => {
     id = storage.add({ testField: "test-value" });
     const next = jest.fn();
-    storage.query().subscribe({
-      next,
-      complete: () => {
-        expect(next).toHaveBeenCalledTimes(1);
-        expect(next).toHaveBeenCalledWith(
-          expect.objectContaining({
-            id: expect.any(String),
-            testField: "test-value"
-          })
-        );
-        done();
-      }
-    });
+    storage
+      .query()
+      .concatMap()
+      .subscribe({
+        next,
+        complete: () => {
+          expect(next).toHaveBeenCalledTimes(1);
+          expect(next).toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: expect.any(String),
+              testField: "test-value"
+            })
+          );
+          done();
+        }
+      });
   });
   test("I can remove the item", done => {
     storage.remove(id);
     const next = jest.fn();
-    storage.query().subscribe({
-      next,
-      complete: () => {
-        expect(next).not.toHaveBeenCalled();
-        done();
-      }
-    });
+    storage
+      .query()
+      .concatMap()
+      .subscribe({
+        next,
+        complete: () => {
+          expect(next).toHaveBeenCalledTimes(0);
+          done();
+        }
+      });
   });
   test("I can filter by item fields", done => {
     storage.add({ testField: "another-value" });
     const next = jest.fn();
-    storage.query({ testField: "another-value" }).subscribe({
-      next,
-      complete: () => {
-        expect(next).toHaveBeenCalledTimes(1);
-        expect(next).toHaveBeenCalledWith(
-          expect.objectContaining({
-            id: expect.any(String),
-            testField: "another-value"
-          })
-        );
-        done();
-      }
-    });
+    storage
+      .query({ testField: "another-value" })
+      .concatMap()
+      .subscribe({
+        next,
+        complete: () => {
+          expect(next).toHaveBeenCalledTimes(1);
+          expect(next).toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: expect.any(String),
+              testField: "another-value"
+            })
+          );
+          done();
+        }
+      });
   });
 });

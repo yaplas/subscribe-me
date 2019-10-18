@@ -15,12 +15,10 @@ const subscribe = ({ storage }) =>
 
 const unsubscribe = ({ storage }) => id => storage.remove(id);
 
-const getSubscriber = C.applySpec({
-  subscribe,
-  unsubscribe
-});
-
 export default C.compose(
-  getSubscriber,
+  C.applySpec({
+    subscribe,
+    unsubscribe
+  }),
   C.mandatoryProp("storage", new Error("No storage provided"))
 );
