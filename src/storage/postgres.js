@@ -61,11 +61,16 @@ const buildChunkGetter = ({ chunkSize, clientPromise }) =>
       const cursor = connection.query(new Cursor(text, values));
       const read = cursorReader(cursor);
       return async () => {
-        const rows = await read(chunkSize);
-        if (rows.length === 0) {
+        try {
+          const rows = await read(chunkSize);
+          if (rows.length === 0) {
+            release(cursor, connection);
+          }
+          return rows;
+        } catch (err) {
           release(cursor, connection);
+          throw err;
         }
-        return rows;
       };
     }
   );

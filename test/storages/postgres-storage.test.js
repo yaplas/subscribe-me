@@ -114,6 +114,8 @@ describe("createPostgresStorage", () => {
       .subscribe({
         error: err => {
           expect(err).toEqual("testing errors");
+          expect(close).toHaveBeenCalledTimes(1);
+          expect(release).toHaveBeenCalledTimes(1);
           done();
         }
       });
