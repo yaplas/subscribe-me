@@ -48,6 +48,9 @@ const getNotifications = ({ storage }) => events =>
     )
   );
 
+/**
+ * Notiofier is created providing an storage. Notifier has one method `getNotifications` that accept a rxjs stream of events (an observable) and return a rxjs stream of notifications based on the stored subscriptions.
+ */
 export default C.compose(
   C.applySpec({
     getNotifications
