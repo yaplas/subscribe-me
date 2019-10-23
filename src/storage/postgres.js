@@ -1,8 +1,6 @@
 import { Pool } from "pg";
 import Cursor from "pg-cursor";
 import uuid from "uuid/v4";
-import { BehaviorSubject, from, asapScheduler } from "rxjs";
-import { concatMap, takeWhile, map, tap, concatAll } from "rxjs/operators";
 import * as C from "../modules/composition";
 
 const getPool = options =>
@@ -43,50 +41,10 @@ const remove = ({ clientPromise, table }) => async id =>
     values: [id]
   });
 
-const cursorReader = cursor => size =>
-  new Promise((resolve, reject) =>
-    cursor.read(size, (err, rows) => (err ? reject(err) : resolve(rows)))
-  );
-
 const release = (cursor, connection) =>
   cursor.close(() => {
     connection.release();
   });
-
-const buildChunkGetter = ({ chunkSize, clientPromise }) =>
-  C.compose(
-    getterPromise => async () => (await getterPromise)(),
-    async ({ text, values }) => {
-      const connection = await (await clientPromise).connect();
-      const cursor = connection.query(new Cursor(text, values));
-      const read = cursorReader(cursor);
-      return async () => {
-        try {
-          const rows = await read(chunkSize);
-          if (rows.length === 0) {
-            release(cursor, connection);
-          }
-          return rows;
-        } catch (err) {
-          release(cursor, connection);
-          throw err;
-        }
-      };
-    }
-  );
-
-const getConcatenator = getNextChunk => ({
-  concatMap: (chunkMapper = C.identity) => {
-    const subject = new BehaviorSubject(0).pipe(
-      concatMap(() => from(getNextChunk())),
-      takeWhile(chunk => chunk.length > 0),
-      map(chunkMapper),
-      tap(() => asapScheduler.schedule(() => subject.next())),
-      concatAll()
-    );
-    return subject;
-  }
-});
 
 const buildQuery = table =>
   C.compose(
@@ -107,10 +65,29 @@ const buildQuery = table =>
     )
   );
 
+const getReader = (clientPromise, chunkSize) => async ({ text, values }) => {
+  const connection = await (await clientPromise).connect();
+  const cursor = connection.query(new Cursor(text, values));
+  return () =>
+    new Promise((resolve, reject) =>
+      cursor.read(chunkSize, (err, chunk) =>
+        err
+          ? C.tap(() => release(cursor, connection), reject(err))
+          : resolve(
+              C.tap(
+                C.when(C.complement(C.length), () =>
+                  release(cursor, connection)
+                ),
+                chunk
+              )
+            )
+      )
+    );
+};
+
 const query = ({ clientPromise, table, chunkSize }) =>
   C.compose(
-    getConcatenator,
-    buildChunkGetter({ chunkSize, clientPromise }),
+    getReader(clientPromise, chunkSize),
     buildQuery(table)
   );
 

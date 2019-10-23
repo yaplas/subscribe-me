@@ -95,17 +95,49 @@ const storage = createPostgresStorage({
 
 #### Table of Contents
 
--   [notifier](#notifier)
--   [subscriber](#subscriber)
+-   [createMemoryStorage](#creatememorystorage)
+-   [createPostgresStorage](#createpostgresstorage)
+    -   [Parameters](#parameters)
+-   [createSubscriber](#createsubscriber)
+    -   [Parameters](#parameters-1)
+-   [createNotifier](#createnotifier)
+    -   [Parameters](#parameters-2)
 
-### notifier
+### createMemoryStorage
 
-Notiofier is created providing an storage. Notifier has one method `getNotifications` that accept a rxjs stream of events (an observable) and return a rxjs stream of notifications based on the stored subscriptions.
+Creates a memory storage, it is used just for tesnting and experiments.
 
-### subscriber
+Returns **any** the storage to be used to create a notifier or a subscriber.
 
-Subscriber is created providing an storage. Subscribar has two methos, `subscribe` and `unsubscribe`.
-The `subscribe` method expect one single argument that is the subscription object which should contain the event field and the target field, optionally you can privide the criteria field with a condition to evaluate the event payload. This criteria support a mongodb where clause style. The `unsubscribe` method expect the subscription id, whichi is privided by the `subscribe` method.
+### createPostgresStorage
+
+Creates PostgreSQL storage.
+
+#### Parameters
+
+-   `options`  Postgres connection configuration plus optionally: chunkSize and table name.
+
+Returns **any** The storage to be used to create a notifier or a subscriber.
+
+### createSubscriber
+
+Create the suubscriber.
+
+#### Parameters
+
+-   `options`  { storage }
+
+Returns **any** The subscriber with the `subscribe` and `unsubscribe` methods.
+
+### createNotifier
+
+Creates the notifier.
+
+#### Parameters
+
+-   `options`  { storage }
+
+Returns **any** The notifier with the `getNotification` method, it receive the input event stream and return the notification event stream (rxjs observable)
 
 ## License
 

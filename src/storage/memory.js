@@ -1,12 +1,7 @@
 import uuid from "uuid/v4";
-import { from } from "rxjs";
 import * as C from "../modules/composition";
 
 let items = [];
-
-const getSingleChunkSubject = chunk => ({
-  concatMap: (chunkMapper = C.identity) => from(chunkMapper(chunk))
-});
 
 const add = C.compose(
   C.prop("id"),
@@ -20,8 +15,7 @@ const remove = id => {
   items = C.filter(item => item.id !== id, items);
 };
 
-const query = where =>
-  getSingleChunkSubject(where ? C.filter(C.whereEq(where), items) : items);
+const query = where => (where ? C.filter(C.whereEq(where), items) : items);
 
 export default () => ({
   add,

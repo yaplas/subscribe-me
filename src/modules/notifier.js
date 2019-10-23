@@ -1,6 +1,8 @@
+import { from } from "rxjs";
 import { concatMap, filter } from "rxjs/operators";
 import { Query } from "mingo";
 import * as C from "./composition";
+import createObservableReader from "./observable-reader";
 
 const testCriteria = payload => criteria =>
   payload && new Query(criteria).test(payload);
@@ -24,7 +26,7 @@ const subscriptionsChunkMapper = event =>
     C.map(
       C.compose(
         C.merge(event),
-        C.pick(["id", "event", "target"])
+        C.pick(["id", "target"])
       )
     ),
     C.filter(
@@ -35,6 +37,16 @@ const subscriptionsChunkMapper = event =>
     )
   );
 
+const resolveQueryData = mapper => data =>
+  C.is(Function, data)
+    ? createObservableReader(data, mapper)
+    : from(mapper(data));
+
+const resolveQueryPromise = (result, mapper) =>
+  C.is(Promise, result)
+    ? from(result).pipe(concatMap(resolveQueryData(mapper)))
+    : resolveQueryData(mapper)(result);
+
 const getNotifications = ({ storage }) => events =>
   events.pipe(
     // skip bad formed events
@@ -42,15 +54,13 @@ const getNotifications = ({ storage }) => events =>
     filter(isEventWellFormed),
     // convert events stream to notifications stream
     concatMap(event =>
-      storage
-        .query({ event: event.type })
-        .concatMap(subscriptionsChunkMapper(event))
+      resolveQueryPromise(
+        storage.query({ event: event.type }),
+        subscriptionsChunkMapper(event)
+      )
     )
   );
 
-/**
- * Notiofier is created providing an storage. Notifier has one method `getNotifications` that accept a rxjs stream of events (an observable) and return a rxjs stream of notifications based on the stored subscriptions.
- */
 export default C.compose(
   C.applySpec({
     getNotifications
