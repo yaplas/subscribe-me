@@ -107,7 +107,7 @@ const storage = createPostgresStorage({
 
 Creates a memory storage, it is used just for tesnting and experiments.
 
-Returns **any** the storage to be used to create a notifier or a subscriber.
+Returns **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** the storage to be used to create a notifier or a subscriber.
 
 ### createPostgresStorage
 
@@ -115,9 +115,16 @@ Creates PostgreSQL storage.
 
 #### Parameters
 
--   `options`  Postgres connection configuration plus optionally: chunkSize and table name.
+-   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** Postgres configuration
+    -   `options.user` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** db user
+    -   `options.password` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** db user password
+    -   `options.host` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** db host
+    -   `options.port` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** db host
+    -   `options.database` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** db name
+    -   `options.chunkSize` **[number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)** the chunk size (optional, default `1000`)
+    -   `options.table` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** subscription table name (optional, default `"event_subscriptions"`)
 
-Returns **any** The storage to be used to create a notifier or a subscriber.
+Returns **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** The storage to be used to create a notifier or a subscriber.
 
 ### createSubscriber
 
@@ -125,7 +132,8 @@ Create the suubscriber.
 
 #### Parameters
 
--   `options`  { storage }
+-   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** configuration options
+    -   `options.storage` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** storage object (e.g. memory storage)
 
 Returns **any** The subscriber with the `subscribe` and `unsubscribe` methods.
 
@@ -135,7 +143,8 @@ Creates the notifier.
 
 #### Parameters
 
--   `options`  { storage }
+-   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** configuration options
+    -   `options.storage` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** storage object (e.g. memory storage)
 
 Returns **any** The notifier with the `getNotification` method, it receive the input event stream and return the notification event stream (rxjs observable)
 

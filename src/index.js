@@ -5,27 +5,36 @@ import notifierCreator from "./modules/notifier";
 
 /**
  * Creates a memory storage, it is used just for tesnting and experiments.
- * @returns the storage to be used to create a notifier or a subscriber.
+ * @returns {Object} the storage to be used to create a notifier or a subscriber.
  */
 export const createMemoryStorage = memoryStorage;
 
 /**
  * Creates PostgreSQL storage.
- * @param options Postgres connection configuration plus optionally: chunkSize and table name.
- * @returns The storage to be used to create a notifier or a subscriber.
+ * @param {Object} options Postgres configuration
+ * @param {string} options.user db user
+ * @param {string} options.password db user password
+ * @param {string} options.host db host
+ * @param {number} options.port db host
+ * @param {string} options.database db name
+ * @param {number} [options.chunkSize=1000] the chunk size
+ * @param {string} [options.table="event_subscriptions"] subscription table name
+ * @returns {Object} The storage to be used to create a notifier or a subscriber.
  */
 export const createPostgresStorage = postgresStorage;
 
 /**
  * Create the suubscriber.
- * @param options { storage }
+ * @param {Object} options configuration options
+ * @param {Object} options.storage storage object (e.g. memory storage)
  * @returns The subscriber with the `subscribe` and `unsubscribe` methods.
  */
 export const createSubscriber = subscriberCreator;
 
 /**
  * Creates the notifier.
- * @param options { storage }
+ * @param {Object} options configuration options
+ * @param {Object} options.storage storage object (e.g. memory storage)
  * @returns The notifier with the `getNotification` method, it receive the input event stream and return the notification event stream (rxjs observable)
  */
 export const createNotifier = notifierCreator;
