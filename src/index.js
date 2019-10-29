@@ -17,6 +17,7 @@ export const createMemoryStorage = memoryStorage;
  * @param {string} options.host db host
  * @param {number} options.port db host
  * @param {string} options.database db name
+ * @param {Object} options.pool or you can provide just a connection pool instance instead of the previous settings
  * @param {number} [options.chunkSize=1000] the chunk size
  * @param {string} [options.table="event_subscriptions"] subscription table name
  * @returns {Object} The storage to be used to create a notifier or a subscriber.
@@ -35,6 +36,7 @@ export const createSubscriber = subscriberCreator;
  * Creates the notifier.
  * @param {Object} options configuration options
  * @param {Object} options.storage storage object (e.g. memory storage)
+ * @param {number} options.bufferMilliseconds setup an event time buffer, useful to reduce significantly the amount of subscription storage accesses
  * @returns The notifier with the `getNotification` method, it receive the input event stream and return the notification event stream (rxjs observable)
  */
 export const createNotifier = notifierCreator;

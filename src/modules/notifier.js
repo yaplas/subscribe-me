@@ -1,5 +1,5 @@
-import { from } from "rxjs";
-import { concatMap, filter } from "rxjs/operators";
+import { from, merge } from "rxjs";
+import { concatMap, filter, bufferTime } from "rxjs/operators";
 import { Query } from "mingo";
 import * as C from "./composition";
 import createObservableReader from "./observable-reader";
@@ -21,20 +21,24 @@ const isEventWellFormed = C.both(
   )
 );
 
-const subscriptionsChunkMapper = event =>
-  C.compose(
-    C.map(
+const mapEventsToSubscriptions = events => subscriptions =>
+  C.chain(
+    event =>
       C.compose(
-        C.merge(event),
-        C.pick(["id", "target"])
-      )
-    ),
-    C.filter(
-      C.compose(
-        C.either(C.isNil, testCriteria(event.payload)),
-        C.prop("criteria")
-      )
-    )
+        C.map(
+          C.compose(
+            C.merge(event),
+            C.pick(["id", "target"])
+          )
+        ),
+        C.filter(
+          C.compose(
+            C.either(C.isNil, testCriteria(event.payload)),
+            C.prop("criteria")
+          )
+        )
+      )(subscriptions),
+    events
   );
 
 const resolveQueryData = mapper => data =>
@@ -47,16 +51,25 @@ const resolveQueryPromise = (result, mapper) =>
     ? from(result).pipe(concatMap(resolveQueryData(mapper)))
     : resolveQueryData(mapper)(result);
 
-const getNotifications = ({ storage }) => events =>
+const getNotifications = ({ storage, bufferMilliseconds = 0 }) => events =>
   events.pipe(
     // skip bad formed events
     // TODO: log this discarded event in somewhere
     filter(isEventWellFormed),
+    // build an event buffer to minimize storage accesses
+    bufferTime(bufferMilliseconds),
     // convert events stream to notifications stream
-    concatMap(event =>
-      resolveQueryPromise(
-        storage.query({ event: event.type }),
-        subscriptionsChunkMapper(event)
+    concatMap(
+      C.compose(
+        C.apply(merge),
+        C.map(([type, typeEvents]) =>
+          resolveQueryPromise(
+            storage.query({ event: type }),
+            mapEventsToSubscriptions(typeEvents)
+          )
+        ),
+        C.toPairs,
+        C.groupBy(C.prop("type"))
       )
     )
   );

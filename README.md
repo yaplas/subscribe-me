@@ -35,7 +35,13 @@ const id = subscriber.subscribe({
     criteria: { previous: { $gte: 50 }, current: { $lt: 50 } }
 });
 
-const notifier = createNotifier({storage});
+// you can use bufferMilliseconds to setup an event time buffer
+// this is to reduce the amount of subscriptions storage queries
+// it works grouping the events by event type and performing only one query per event type
+const notifier = createNotifier({
+    storage,
+    bufferMilliseconds: 10000,
+});
 
 // getNotification method accept a rxjs stream of events and return a rxjs stream of notifications
 const notifications = notifier.getNotifications(

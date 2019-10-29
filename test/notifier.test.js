@@ -155,10 +155,10 @@ describe("notifier", () => {
             C.merge(inputEvents[1], C.pick(["id", "target"], rows2[1]))
           );
           expect(createTable).toHaveBeenCalledTimes(1);
-          expect(query).toHaveBeenCalledTimes(2);
-          expect(read).toHaveBeenCalledTimes(6);
-          expect(close).toHaveBeenCalledTimes(2);
-          expect(release).toHaveBeenCalledTimes(2);
+          expect(query).toHaveBeenCalledTimes(1);
+          expect(read).toHaveBeenCalledTimes(3);
+          expect(close).toHaveBeenCalledTimes(1);
+          expect(release).toHaveBeenCalledTimes(1);
           done();
         }
       });
