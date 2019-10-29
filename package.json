@@ -40,7 +40,11 @@
     ]
   },
   "keywords": [
-    "subscribe-me"
+    "subscribe-me",
+    "reactive",
+    "events",
+    "subscriptions",
+    "rxjs"
   ],
   "dependencies": {
     "mingo": "2.3.5",
