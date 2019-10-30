@@ -130,4 +130,11 @@ describe("createPostgresStorage", () => {
     expect(close).toHaveBeenCalledTimes(1);
     expect(release).toHaveBeenCalledTimes(1);
   });
+  test("throw when service is unreachable", async () => {
+    const storage = createPostgresStorage({
+      host: "any-non-reachable-host",
+      database: "any-unreachable-database"
+    });
+    expect(storage.query({ something: "test-event" })).rejects.toThrow();
+  });
 });
