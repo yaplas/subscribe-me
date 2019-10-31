@@ -1,7 +1,7 @@
 {
   "name": "subscribe-me",
   "version": "0.1.14",
-  "description": "subscrition manager",
+  "description": "subscription manager",
   "license": "MIT",
   "repository": "yaplas/subscribe-me",
   "main": "dist/index.js",
