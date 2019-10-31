@@ -61,6 +61,11 @@ notifications.subscribe(console.log);
 subscriber.unsubscribe(id);
 ```
 
+### Events Time Buffer
+
+As you see in the above example, it is possible to setup an event time buffer using the notifier `bufferMilliseconds` setting. Lets say we have the subscriptions stored in a postgres database and we have an income events stream of 1000 events in 10 seconds, if we have the `bufferMilliseconds` set to 10000 (10 s) and those 1000 events comes in 3 different event types, the notifier gonna perform 3 queries to the postgres database (one per each event type) in those 10 seconds. If we have the `bufferMilliseconds` set to 5000 (5 s), and those 1000 events are evenly distributed in those 10 seconds, we have more or less 500 events (of those 3 types) in each 5 seconds buffer, so the notifier will perform 3 queries in 5 seconds (6 each 10 seconds). So having a longer time buffer reduce the amount of storage accesses. The downside is that the time buffer introduce latency between the incoming events and outcoming notifications.
+
+
 ### PostgreSQL Storage
 
 It is possible to create a postgres storage providing the postgres connection configuration. Besides postgres specific confuguration setting you can provide the subscription table name and the cbhunk size. The database is accesed via a cursor that get the data by chunks, if the chunk size is 1000 then each chunk will contain 1000 table rows.
@@ -94,10 +99,6 @@ const storage = createPostgresStorage({
     chunkSize: 1000,
 })
 ```
-
-### Events Time Buffer
-
-As you see in the above example, it is possible to setup an event time buffer using the notifier `bufferMilliseconds` setting. Lets say we have the subscriptions stored in a postgres database and we have an income events stream of 1000 events in 10 seconds, if we have the `bufferMilliseconds` set to 10000 (10 s) and those 1000 events comes in 3 different event types, the notifier gonna perform 3 queries to the postgres database (one per each event type) in those 10 seconds. If we have the `bufferMilliseconds` set to 5000 (5 s), and those 1000 events are evenly distributed in those 10 seconds, we have more or less 500 events (of those 3 types) in each 5 seconds buffer, so the notifier will perform 3 queries in 5 seconds (6 each 10 seconds). So having a longer time buffer reduce the amount of storage accesses. The downside is that the time buffer introduce latency between the incoming events and outcoming notifications.
 
 ## API
 
